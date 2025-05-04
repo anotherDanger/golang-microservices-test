@@ -8,6 +8,7 @@ services:
       - DB_HOST=book_service_db
       - DB_PORT=3306
       - DB_NAME=book_service
+      - JWT_ACCESS=rahasia
     ports:
       - 8080:8080
     networks:

@@ -2,6 +2,7 @@ package main
 
 import (
 	"books_service/controller"
+	"books_service/middleware"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -18,9 +19,10 @@ func NewRouter(ctrl *controller.BookControllerImpl) *httprouter.Router {
 }
 
 func NewServer(handler http.Handler) *http.Server {
+	middleware := middleware.NewJwtMiddleware(handler)
 	return &http.Server{
 		Addr:    "0.0.0.0:8080",
-		Handler: handler,
+		Handler: middleware,
 	}
 }
 
