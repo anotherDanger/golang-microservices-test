@@ -13,6 +13,7 @@ services:
       - 8080:8080
     networks:
       - book_service_network
+      - all_services
   book_service_db:
     image: mysql:latest
     container_name: book_service_db
@@ -26,6 +27,8 @@ services:
 
 networks:
   book_service_network:
+  all_services:
+    external: true
 volumes:
   book_service_volume:
       
