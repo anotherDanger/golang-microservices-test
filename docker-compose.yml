@@ -1,0 +1,30 @@
+services:
+  book_service:
+    image: book_service
+    container_name: book_service
+    environment:
+      - DB_USER=root
+      - DB_PASS=andhikad
+      - DB_HOST=book_service_db
+      - DB_PORT=3306
+      - DB_NAME=book_service
+    ports:
+      - 8080:8080
+    networks:
+      - book_service_network
+  book_service_db:
+    image: mysql:latest
+    container_name: book_service_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=andhikad
+      - MYSQL_DATABASE=book_service
+    networks:
+      - book_service_network
+    volumes:
+      - book_service_volume:/var/lib/mysql
+
+networks:
+  book_service_network:
+volumes:
+  book_service_volume:
+      
