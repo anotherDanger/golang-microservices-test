@@ -99,7 +99,6 @@ func (svc *BookServiceImpl) FindAll(ctx context.Context) ([]*domain.Domain, erro
 	results, err := svc.repo.FindAll(ctx, tx)
 	if err != nil {
 		log.Print(err)
-		_ = tx.Rollback()
 		return nil, err
 	}
 
