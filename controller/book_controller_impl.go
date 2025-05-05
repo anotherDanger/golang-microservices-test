@@ -13,10 +13,10 @@ import (
 )
 
 type BookControllerImpl struct {
-	svc *service.BookServiceImpl
+	svc service.BookService
 }
 
-func NewBookController(svc *service.BookServiceImpl) *BookControllerImpl {
+func NewBookController(svc service.BookService) BookController {
 	return &BookControllerImpl{
 		svc: svc,
 	}

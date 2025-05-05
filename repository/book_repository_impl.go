@@ -9,7 +9,7 @@ import (
 
 type BookRepositoryImpl struct{}
 
-func NewBookRepositoryImpl() *BookRepositoryImpl {
+func NewBookRepositoryImpl() BookRepository {
 	return &BookRepositoryImpl{}
 }
 

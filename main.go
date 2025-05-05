@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func NewRouter(ctrl *controller.BookControllerImpl) *httprouter.Router {
+func NewRouter(ctrl controller.BookController) *httprouter.Router {
 	r := httprouter.New()
 	r.POST("/v1/book", ctrl.Create)
 	r.PUT("/v1/book/:id", ctrl.Update)

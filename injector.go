@@ -16,9 +16,9 @@ import (
 
 var ServerSet = wire.NewSet(
 	helper.NewDb,
-	repository.NewBookRepositoryImpl, wire.Bind(new(repository.BookRepository), new(*repository.BookRepositoryImpl)),
-	service.NewBookServiceImpl, wire.Bind(new(service.BookService), new(*service.BookServiceImpl)),
-	controller.NewBookController, wire.Bind(new(controller.BookController), new(*controller.BookControllerImpl)),
+	repository.NewBookRepositoryImpl,
+	service.NewBookServiceImpl,
+	controller.NewBookController,
 	NewRouter,
 	NewServer, wire.Bind(new(http.Handler), new(*httprouter.Router)),
 )

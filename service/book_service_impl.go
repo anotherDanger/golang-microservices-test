@@ -11,11 +11,11 @@ import (
 )
 
 type BookServiceImpl struct {
-	repo *repository.BookRepositoryImpl
+	repo repository.BookRepository
 	db   *sql.DB
 }
 
-func NewBookServiceImpl(repo *repository.BookRepositoryImpl, db *sql.DB) *BookServiceImpl {
+func NewBookServiceImpl(repo repository.BookRepository, db *sql.DB) BookService {
 	return &BookServiceImpl{
 		repo: repo,
 		db:   db,

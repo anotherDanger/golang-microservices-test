@@ -19,14 +19,14 @@ import (
 // Injectors from injector.go:
 
 func InitServer() (*http.Server, func(), error) {
-	bookRepositoryImpl := repository.NewBookRepositoryImpl()
+	bookRepository := repository.NewBookRepositoryImpl()
 	db, cleanup, err := helper.NewDb()
 	if err != nil {
 		return nil, nil, err
 	}
-	bookServiceImpl := service.NewBookServiceImpl(bookRepositoryImpl, db)
-	bookControllerImpl := controller.NewBookController(bookServiceImpl)
-	router := NewRouter(bookControllerImpl)
+	bookService := service.NewBookServiceImpl(bookRepository, db)
+	bookController := controller.NewBookController(bookService)
+	router := NewRouter(bookController)
 	server := NewServer(router)
 	return server, func() {
 		cleanup()
@@ -35,6 +35,6 @@ func InitServer() (*http.Server, func(), error) {
 
 // injector.go:
 
-var ServerSet = wire.NewSet(helper.NewDb, repository.NewBookRepositoryImpl, wire.Bind(new(repository.BookRepository), new(*repository.BookRepositoryImpl)), service.NewBookServiceImpl, wire.Bind(new(service.BookService), new(*service.BookServiceImpl)), controller.NewBookController, wire.Bind(new(controller.BookController), new(*controller.BookControllerImpl)), NewRouter,
+var ServerSet = wire.NewSet(helper.NewDb, repository.NewBookRepositoryImpl, service.NewBookServiceImpl, controller.NewBookController, NewRouter,
 	NewServer, wire.Bind(new(http.Handler), new(*httprouter.Router)),
 )
