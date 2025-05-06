@@ -95,3 +95,51 @@ func TestUpdateBookSuccess(t *testing.T) {
 	assert.Equal(t, expected, result)
 	repo.AssertExpectations(t)
 }
+
+func TestDeleteBookSuccesst(t *testing.T) {
+	db, sqlMock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	repo := mocks.NewBookRepository(t)
+	svc := NewBookServiceImpl(repo, db)
+
+	ctx := context.Background()
+	id := int(1)
+	sqlMock.ExpectBegin()
+	sqlMock.ExpectCommit()
+	repo.On("Delete", ctx, mock.AnythingOfType("*sql.Tx"), id).Return(nil)
+	err = svc.Delete(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, nil, err)
+}
+
+func TestDeleteBookFailed(t *testing.T) {
+	db, sqlMock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	repo := mocks.NewBookRepository(t)
+	svc := NewBookServiceImpl(repo, db)
+	id := int(1)
+	expected := errors.New("error")
+	sqlMock.ExpectBegin()
+	sqlMock.ExpectRollback()
+	ctx := context.Background()
+	repo.On("Delete", ctx, mock.AnythingOfType("*sql.Tx"), id).Return(expected)
+	err = svc.Delete(ctx, id)
+	if err == nil {
+		t.Fatal(err)
+	}
+	assert.Error(t, err, "error")
+	assert.Equal(t, expected, errors.New("error"))
+}
