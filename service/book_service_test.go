@@ -143,3 +143,28 @@ func TestDeleteBookFailed(t *testing.T) {
 	assert.Error(t, err, "error")
 	assert.Equal(t, expected, errors.New("error"))
 }
+
+func TestFindByIdSuccess(t *testing.T) {
+	db, sqlmock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	repo := mocks.NewBookRepository(t)
+	svc := NewBookServiceImpl(repo, db)
+	ctx := context.Background()
+	expected := &domain.Domain{Id: 1, Author: "Test", Title: "Testing"}
+
+	sqlmock.ExpectBegin()
+	sqlmock.ExpectCommit()
+	repo.On("FindById", ctx, mock.AnythingOfType("*sql.Tx"), 1).Return(expected, nil)
+	result, err := svc.FindById(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+}
