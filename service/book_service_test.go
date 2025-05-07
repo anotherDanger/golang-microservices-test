@@ -168,3 +168,27 @@ func TestFindByIdSuccess(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
+
+func TestFindByIdFailed(t *testing.T) {
+	db, sqlmock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	repo := mocks.NewBookRepository(t)
+	svc := NewBookServiceImpl(repo, db)
+	ctx := context.Background()
+
+	expected := errors.New("error")
+	sqlmock.ExpectBegin()
+	sqlmock.ExpectRollback()
+	repo.On("FindById", ctx, mock.AnythingOfType("*sql.Tx"), 2).Return(nil, expected)
+	_, err = svc.FindById(ctx, 2)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, expected, err)
+	repo.AssertExpectations(t)
+}
