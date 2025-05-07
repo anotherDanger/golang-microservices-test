@@ -96,6 +96,30 @@ func TestUpdateBookSuccess(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
+func TestUpdateBookFailed(t *testing.T) {
+	db, sqlmock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	repo := mocks.NewBookRepository(t)
+	svc := NewBookServiceImpl(repo, db)
+	ctx := context.Background()
+	expected := errors.New("error")
+	request := &web.Request{Author: "Test", Title: "Testing"}
+	sqlmock.ExpectBegin()
+	sqlmock.ExpectRollback()
+	repo.On("Update", ctx, mock.AnythingOfType("*sql.Tx"), (*domain.Domain)(request)).Return(nil, expected)
+	_, err = svc.Update(ctx, request)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, expected, err)
+	repo.AssertExpectations(t)
+}
+
 func TestDeleteBookSuccesst(t *testing.T) {
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {
@@ -185,6 +209,67 @@ func TestFindByIdFailed(t *testing.T) {
 	sqlmock.ExpectRollback()
 	repo.On("FindById", ctx, mock.AnythingOfType("*sql.Tx"), 2).Return(nil, expected)
 	_, err = svc.FindById(ctx, 2)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, expected, err)
+	repo.AssertExpectations(t)
+}
+
+func TestFindAllSuccess(t *testing.T) {
+	db, sqlmock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	repo := mocks.NewBookRepository(t)
+	svc := NewBookServiceImpl(repo, db)
+	ctx := context.Background()
+
+	expected := []*domain.Domain{
+		{
+			Id:     1,
+			Author: "Test 1",
+			Title:  "Testing 1",
+		},
+		{
+			Id:     2,
+			Author: "Test 2",
+			Title:  "Testing 2",
+		},
+	}
+
+	sqlmock.ExpectBegin()
+	sqlmock.ExpectCommit()
+	repo.On("FindAll", ctx, mock.AnythingOfType("*sql.Tx")).Return(expected, nil)
+	result, err := svc.FindAll(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, expected, result)
+	repo.AssertExpectations(t)
+}
+
+func TestFindAllFailed(t *testing.T) {
+	db, sqlmock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	repo := mocks.NewBookRepository(t)
+	svc := NewBookServiceImpl(repo, db)
+	ctx := context.Background()
+
+	expected := errors.New("error")
+	sqlmock.ExpectBegin()
+	sqlmock.ExpectRollback()
+	repo.On("FindAll", ctx, mock.AnythingOfType("*sql.Tx")).Return(nil, expected)
+	_, err = svc.FindAll(ctx)
 	if err == nil {
 		t.Fatal(err)
 	}
