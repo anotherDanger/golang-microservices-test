@@ -109,3 +109,41 @@ func TestBookUpdateFailed(t *testing.T) {
 	assert.Equal(t, "id not found", result.Message)
 	assert.Equal(t, domain.Domain{Id: 0, Author: "", Title: ""}, result.Data)
 }
+
+func TestBookDeleteSuccess(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	request := httptest.NewRequest("DELETE", "http://localhost:8080/v1/book/3", nil)
+	recorder := httptest.NewRecorder()
+
+	params := httprouter.Params{
+		{Key: "id", Value: "2"},
+	}
+
+	svc.On("Delete", mock.Anything, mock.Anything).Return(nil)
+
+	ctrl.Delete(recorder, request, params)
+
+	assert.Equal(t, 204, recorder.Result().StatusCode)
+}
+
+func TestBookDeleteFailed(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	request := httptest.NewRequest("DELETE", "http://localhost:8080/v1/book/4", nil)
+	recorder := httptest.NewRecorder()
+
+	params := httprouter.Params{
+		{
+			Key: "id", Value: "4",
+		},
+	}
+
+	svc.On("Delete", mock.Anything, mock.Anything).Return(errors.New("id not found"))
+
+	ctrl.Delete(recorder, request, params)
+
+	assert.Equal(t, 400, recorder.Result().StatusCode)
+}
