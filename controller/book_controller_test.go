@@ -5,10 +5,13 @@ import (
 	"books_service/service/mocks"
 	"books_service/web"
 	"encoding/json"
+	"errors"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -34,4 +37,51 @@ func TestBookCreateSuccess(t *testing.T) {
 	assert.Equal(t, expected.Id, result.Data.Id)
 	assert.Equal(t, expected.Author, result.Data.Author)
 	assert.Equal(t, expected.Title, result.Data.Title)
+}
+
+func TestBookCreateFailed(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	request := httptest.NewRequest("POST", "http://localhost:8080/v1/book", strings.NewReader("{invalid-json}"))
+	recorder := httptest.NewRecorder()
+
+	svc.On("Create", mock.Anything, mock.AnythingOfType("*web.Request")).Return(nil, errors.New("error"))
+
+	ctrl.Create(recorder, request, nil)
+
+	var result web.Response[domain.Domain]
+	json.NewDecoder(recorder.Body).Decode(&result)
+
+	assert.Equal(t, http.StatusBadRequest, result.Code)
+	assert.Equal(t, "error", result.Message)
+	assert.Equal(t, 0, result.Data.Id)
+	assert.Equal(t, "Error", result.Status)
+
+}
+
+func TestBookUpdateSuccess(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	reqBody := `{"Author":"Test 2", "Title": "Testing 2"}`
+	request := httptest.NewRequest("PUT", "http://localhost:8080/v1/book/1", strings.NewReader(reqBody))
+	recorder := httptest.NewRecorder()
+	params := httprouter.Params{
+		{Key: "id", Value: "1"},
+	}
+	expected := &domain.Domain{Id: 1, Author: "Test 2", Title: "Testing 2"}
+
+	svc.On("Update", mock.Anything, mock.Anything).Return(expected, nil)
+
+	ctrl.Update(recorder, request, params)
+
+	var result web.Response[domain.Domain]
+	json.NewDecoder(recorder.Body).Decode(&result)
+	assert.Equal(t, 200, result.Code)
+	assert.Equal(t, "OK", result.Status)
+	assert.Equal(t, expected.Id, result.Data.Id)
+	assert.Equal(t, expected.Author, result.Data.Author)
+	assert.Equal(t, expected.Title, result.Data.Title)
+
 }
