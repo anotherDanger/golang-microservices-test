@@ -199,3 +199,50 @@ func TestBookFindByIdFailed(t *testing.T) {
 	assert.Equal(t, "Error", result.Status)
 	assert.Equal(t, "id not found", result.Message)
 }
+
+func TestBookFindAllSuccess(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	expected := []*domain.Domain{
+		{
+			Id:     1,
+			Author: "Test 1",
+			Title:  "Testing 1",
+		},
+		{
+			Id:     2,
+			Author: "Test 2",
+			Title:  "Testing 2",
+		},
+	}
+
+	request := httptest.NewRequest("GET", "localhost:8080/v1/book", nil)
+	recorder := httptest.NewRecorder()
+
+	svc.On("FindAll", mock.Anything).Return(expected, nil)
+
+	ctrl.FindAll(recorder, request, nil)
+
+	var result web.Response[[]*domain.Domain]
+	json.NewDecoder(recorder.Body).Decode(&result)
+
+	assert.Equal(t, 200, result.Code)
+	assert.Equal(t, "OK", result.Status)
+	assert.Equal(t, "Success", result.Message)
+	assert.Equal(t, expected, result.Data)
+}
+
+func TestBookFindAllFailed(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	request := httptest.NewRequest("GET", "http://localhost:8080", nil)
+	recorder := httptest.NewRecorder()
+
+	svc.On("FindAll", mock.Anything).Return(nil, errors.New("cannot find data"))
+
+	ctrl.FindAll(recorder, request, nil)
+
+	assert.Equal(t, 400, recorder.Result().StatusCode)
+}
