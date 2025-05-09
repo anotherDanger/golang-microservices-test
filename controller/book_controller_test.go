@@ -85,3 +85,27 @@ func TestBookUpdateSuccess(t *testing.T) {
 	assert.Equal(t, expected.Title, result.Data.Title)
 
 }
+
+func TestBookUpdateFailed(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	reqBody := `{"Author":"Test","Title":"Testing"}`
+	request := httptest.NewRequest("PUT", "http://localhost:8080/v1/book/2", strings.NewReader(reqBody))
+	recorder := httptest.NewRecorder()
+
+	params := httprouter.Params{
+		{Key: "id", Value: "2"},
+	}
+
+	svc.On("Update", mock.Anything, mock.Anything).Return(nil, errors.New("id not found"))
+
+	ctrl.Update(recorder, request, params)
+
+	var result web.Response[domain.Domain]
+	json.NewDecoder(recorder.Body).Decode(&result)
+	assert.Equal(t, 400, result.Code)
+	assert.Equal(t, "Error", result.Status)
+	assert.Equal(t, "id not found", result.Message)
+	assert.Equal(t, domain.Domain{Id: 0, Author: "", Title: ""}, result.Data)
+}
