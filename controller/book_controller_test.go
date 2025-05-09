@@ -147,3 +147,55 @@ func TestBookDeleteFailed(t *testing.T) {
 
 	assert.Equal(t, 400, recorder.Result().StatusCode)
 }
+
+func TestBookFindByIdSuccess(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	expected := &domain.Domain{
+		Id:     1,
+		Author: "Test",
+		Title:  "Testing",
+	}
+
+	request := httptest.NewRequest("GET", "http://localhost:8080/v1/book/1", nil)
+	recorder := httptest.NewRecorder()
+	params := httprouter.Params{
+		{
+			Key: "id", Value: "4",
+		},
+	}
+	svc.On("FindById", mock.Anything, mock.Anything).Return(expected, nil)
+
+	ctrl.FindById(recorder, request, params)
+
+	var result web.Response[domain.Domain]
+	json.NewDecoder(recorder.Body).Decode(&result)
+	assert.Equal(t, 200, result.Code)
+	assert.Equal(t, "OK", result.Status)
+	assert.Equal(t, "Success", result.Message)
+	assert.Equal(t, *expected, result.Data)
+}
+
+func TestBookFindByIdFailed(t *testing.T) {
+	svc := mocks.NewBookService(t)
+	ctrl := NewBookController(svc)
+
+	request := httptest.NewRequest("GET", "http://localhost:8080/v1/book/2", nil)
+	recorder := httptest.NewRecorder()
+
+	svc.On("FindById", mock.Anything, mock.Anything).Return(nil, errors.New("id not found"))
+	params := httprouter.Params{
+		{
+			Key: "id", Value: "4",
+		},
+	}
+	ctrl.FindById(recorder, request, params)
+
+	var result web.Response[domain.Domain]
+	json.NewDecoder(recorder.Body).Decode(&result)
+
+	assert.Equal(t, 400, result.Code)
+	assert.Equal(t, "Error", result.Status)
+	assert.Equal(t, "id not found", result.Message)
+}
